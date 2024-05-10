@@ -110,6 +110,8 @@ Range("A1").Select
     
 End Sub
 
+' '****************************************************************************************************
+
 Sub RoboBacenAbertura()
 
 Application.Visible = False
