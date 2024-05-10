@@ -1,2 +1,125 @@
-# Rob--Extra-o-Bacen
-Esta VBA foi desenvolvida com o propósito de extrair informações dos dados disponibilizados pelo Banco Central através do link https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes.
+'******************************************************************************************************************************************************************************************************************
+' Projeto: Robo BACEN
+' Módulo: Extração do BACEN
+' Descrição:  Essa macro tem a finalidade de extrair informações dos dados do Banco Central a partir do link https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes.
+' Autor: Nielk Nuana Carvalho dos Santos
+' Data: 15.01.2023
+'
+' Notas:
+' - N/A
+'
+' Revisões:
+' - N/A
+'******************************************************************************************************************************************************************************************************************
+
+Sub Abertura()
+
+Dim driver As New chromedriver 'https://github.com/florentbr/SeleniumBasic/releases/tag/v2.0.9.0
+Dim texto As String
+On Error GoTo ErroEncontrado
+    
+Sheets("Abertura").Select
+    
+driver.AddArgument "--headless"
+    
+      ' '****************************************************************************************************Abrir navegador
+driver.Get "https://ptax.bcb.gov.br/ptax_internet/consultaBoletim.do?method=exibeFormularioConsultaBoletim"
+    
+    ' '****************************************************************************************************pagina com o click
+driver.FindElementByXPath("/html/body/div/form/table[1]/tbody/tr[2]/td/input[3]").Click
+driver.FindElementByXPath("/html/body/div/form/div/input").Click
+driver.FindElementByXPath("/html/body/center[1]/table/tbody/tr[1]/td[2]/a").Click
+
+    ' '****************************************************************************************************extraçao das informaçao apenas a tabela
+Range("A1").Value = driver.FindElementsByXPath("/html/body/center/table[1]/tbody").Text.Item(1)
+    
+driver.Close
+    
+    ' '****************************************************************************************************verificar se é a pagina correta
+If ActiveSheet.Name <> "interface" Then
+        Sheets("Abertura").Select
+End If
+        
+     ' '****************************************************************************************************arrumar a codiçao das informaçõoes extraidas
+Range("A2").Select
+ActiveCell.Formula2R1C1 = "=TEXTSPLIT(R[-1]C,"" "",CHAR(10))"
+
+Cells.Select
+Selection.Copy
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+Application.CutCopyMode = False
+Rows("1:1").Select
+Selection.Delete Shift:=xlUp
+    
+Rows("1:1").Select
+Selection.Delete Shift:=xlUp
+Selection.Delete Shift:=xlUp
+Rows("12:14").Select
+Selection.Delete Shift:=xlUp
+Cells.Select
+    
+    ' '****************************************************************************************************selecionar e colocar as informaçõoes
+Range("A1:E11").Select
+Selection.Copy
+    
+Sheets("Bacen").Select
+
+Range("B4").Select
+Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+        
+Range("A1").Select
+    
+Exit Sub
+
+    ' '****************************************************************************************************Adicionar código para tratar erros aqui
+ErroEncontrado:
+Sheets("Bacen").Select
+
+Range("A1").Select
+    MsgBox "Abertura do dia nao foi fechada"
+    
+End Sub
+
+Sub Limpar()
+
+' '****************************************************************************************************Excluia as informacoes da aba abertura
+Sheets("Abertura").Select
+Cells.Select
+Selection.ClearContents
+Range("A1").Select
+    
+ ' '****************************************************************************************************Excluia as informacoes da aba Ptax
+Sheets("Ptax").Select
+Cells.Select
+Selection.ClearContents
+Range("A1").Select
+    
+' '****************************************************************************************************Volta para o Menu
+Sheets("Bacen").Select
+Range("A1").Select
+    
+Range("B4:F14").Select
+Selection.ClearContents
+    
+Range("M4:R14").Select
+Selection.ClearContents
+    
+Range("A1").Select
+    
+End Sub
+
+Sub RoboBacenAbertura()
+
+Application.Visible = False
+Application.ScreenUpdating = False
+
+Call Limpar
+
+Call Abertura
+
+Application.Visible = True
+Application.ScreenUpdating = True
+
+End Sub
